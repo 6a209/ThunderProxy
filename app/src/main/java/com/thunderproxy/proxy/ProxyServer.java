@@ -4,7 +4,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -93,8 +95,8 @@ public class ProxyServer {
                         Iterator it = selectionKeys.iterator();
                         while(it.hasNext()){
                             SelectionKey key = (SelectionKey)it.next();
-                            handleKey(key);
                             it.remove();
+                            handleKey(key);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -118,54 +120,13 @@ public class ProxyServer {
             return;
         }
 
-        if(key.isAcceptable()){
-            try {
-                ServerSocketChannel serverSocketChannel = (ServerSocketChannel)key.channel();
-                SocketChannel socketChannel = serverSocketChannel.accept();
-                socketChannel.configureBlocking(false);
-                SelectionKey readSectionKey = socketChannel.register(mSelector, SelectionKey.OP_READ);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }else if(key.isConnectable()){
-
-        }else if(key.isReadable()){
-            mSocketBuffer.clear();
-            SocketChannel socketChannel = (SocketChannel)key.channel();
-            try {
-                int count = socketChannel.read(mSocketBuffer);
-                mSocketBuffer.flip();
-
-
-                String line = readLine(mSocketBuffer);
-                while (line != null && line.length() > 0){
-                    System.out.println("********************");
-                    System.out.println(line);
-                    line = readLine(mSocketBuffer);
-                }
-//                if(count > 0){
-//                    byte[] bytes = new byte[count];
-//                    mSocketBuffer.get(bytes);
-//                    System.out.println(new String(bytes, Charset.forName("UTF-8")));
-//                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Object socketAction = key.attachment();
+        if(null == socketAction){
+            socketAction = new SocketAcceptAction();
         }
-    }
-
-    String readLine(ByteBuffer byteBuffer){
-        StringBuilder sb = new StringBuilder();
-        while(byteBuffer.remaining() > 0){
-            byte ch = byteBuffer.get();
-            if(-1 == ch || '\n' == ch){
-                break;
-            }
-            if(ch != '\r'){
-                sb.append((char)ch);
-            }
+        if(socketAction instanceof SocketAction){
+            ((SocketAction) socketAction).onAction(key, mSelector, mSocketBuffer);
         }
-        return sb.toString();
     }
 
     public static void main(String[] argu){
