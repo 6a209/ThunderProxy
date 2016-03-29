@@ -2,6 +2,7 @@ package com.thunderproxy.proxy;
 
 import java.nio.ByteBuffer;
 import java.security.cert.CRL;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,12 +46,22 @@ public class Response {
         return mHeader;
     }
 
-    public void setHeader(Map<String, String> mHeader) {
-        this.mHeader = mHeader;
+    public void setHeader(Map<String, String> header) {
+        this.mHeader = header;
     }
 
     public void addHeader(String key, String value){
+        if(null == mHeader){
+            mHeader = new HashMap<>();
+        }
         mHeader.put(key, value);
+    }
+
+    public void addHeader(Map<String, String> headers){
+        if(null == mHeader){
+            mHeader = new HashMap<>();
+        }
+        mHeader.putAll(headers);
     }
 
     public String getBody() {

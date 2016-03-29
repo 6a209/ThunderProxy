@@ -11,6 +11,8 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by 6a209 on 16/1/31.
@@ -27,6 +29,11 @@ public class ReqSocketReadAction extends SocketReadAction{
 
         int count = read(selectionKey, buffer);
         if(count <= 0){
+            try {
+                selectionKey.channel().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -42,13 +49,17 @@ public class ReqSocketReadAction extends SocketReadAction{
             }
             mRequest.setMethod(status[0]);
             mRequest.setUrl(status[1]);
-            mRequest.setHttpVersion(status[2]);
+            mRequest.setHttpVersion(status[2].replace("\r\n", ""));
             mCurrentStep = STEP.HEAD;
         }
 
         if(STEP.HEAD == mCurrentStep){
-            mRequest.setHeader(parseHeader(buffer));
-            mCurrentStep = STEP.BODY;
+            Map<String, String> headers = new HashMap<String, String>();
+            boolean isOver = parseHeader(buffer, headers);
+            mRequest.addHeaders(headers);
+            if(isOver){
+                mCurrentStep = STEP.BODY;
+            }
         }
 
         if(STEP.BODY == mCurrentStep){
@@ -59,7 +70,7 @@ public class ReqSocketReadAction extends SocketReadAction{
                 }
                 byte[] bytes = new byte[size];
                 buffer.get(bytes);
-                mBodyTemp.append(bytes);
+                mBodyTemp.append(new String(bytes));
                 if (count < buffer.capacity()) {
                     mCurrentStep = STEP.OVER;
                     if (mRequest.getMethod() == Request.METHOD.GET) {
@@ -84,10 +95,10 @@ public class ReqSocketReadAction extends SocketReadAction{
             SocketChannel socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
             System.out.print("________________");
-            System.out.print(InetAddress.getByName("www.baidu.com"));
+            System.out.print(InetAddress.getByName(request.getHost()));
             System.out.print("________________");
 
-            SocketAddress address = new InetSocketAddress(InetAddress.getByName("www.baidu.com"), 80);
+            SocketAddress address = new InetSocketAddress(InetAddress.getByName(request.getHost()), request.getPort());
             SelectionKey selectionKey = socketChannel.register(selector, SelectionKey.OP_CONNECT);
             selectionKey.attach(new SocketConnectAction(request));
             socketChannel.connect(address);
@@ -95,7 +106,4 @@ public class ReqSocketReadAction extends SocketReadAction{
             e.printStackTrace();
         }
     }
-
-
-
 }

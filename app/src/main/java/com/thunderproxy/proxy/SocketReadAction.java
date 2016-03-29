@@ -43,16 +43,26 @@ public abstract class SocketReadAction implements SocketAction{
         return arr;
     }
 
-    Map<String, String> parseHeader(ByteBuffer byteBuffer){
+    /**
+     *
+     * @param byteBuffer
+     * @param header
+     * @return true
+     */
+    boolean parseHeader(ByteBuffer byteBuffer, Map<String, String> header){
         String line;
-        Map<String, String> header = new HashMap<>();
         while((line = readLine(byteBuffer)).length() > 0){
-            String[] array = line.split(":");
+            String[] array = line.split(": ");
             if(array.length == 2){
-                header.put(array[0], array[1]);
+                header.put(array[0], array[1].replace("\r\n", ""));
+            }else{
+                if(line.equals("\r\n")) {
+                    // header is over
+                    return true;
+                }
             }
         }
-        return header;
+        return false;
     }
 
     String readLine(ByteBuffer byteBuffer){
@@ -60,11 +70,9 @@ public abstract class SocketReadAction implements SocketAction{
         byte lastByte = 0x00;
         while(byteBuffer.remaining() > 0){
             byte ch = byteBuffer.get();
+            sb.append((char)ch);
             if(('\r' == lastByte && '\n' == ch) || -1 == ch){
                 break;
-            }
-            if(ch != '\r'){
-                sb.append((char)ch);
             }
             lastByte = ch;
 

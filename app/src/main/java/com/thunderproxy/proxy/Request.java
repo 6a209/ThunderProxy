@@ -1,12 +1,10 @@
 package com.thunderproxy.proxy;
 
-import android.net.Uri;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -29,6 +27,7 @@ public class Request {
     private String mBody;
     private String mHost;
     private String mPath;
+    private int mPort;
 
     private SocketChannel mSocketChannel;
 
@@ -64,7 +63,9 @@ public class Request {
 
     public void setUrl(String url){
         mUrl = url;
-        Uri uri = Uri.parse(url);
+//        Uri uri = Uri.parse(url);
+        URI uri = URI.create(url);
+        mPort = uri.getPort();
         mHost = uri.getHost();
         mPath = uri.getPath();
     }
@@ -81,6 +82,10 @@ public class Request {
         return mPath;
     }
 
+    public int getPort(){
+        return mPort;
+    }
+
     public void setHeader(Map<String, String> header){
         mHeader = header;
     }
@@ -90,6 +95,16 @@ public class Request {
             mHeader = new HashMap<>();
         }
         mHeader.put(key, value);
+    }
+
+    public void addHeaders(Map<String, String> map){
+        if(null == map || map.size() == 0){
+            return;
+        }
+        if(null == mHeader){
+            mHeader = new HashMap<>();
+        }
+        mHeader.putAll(map);
     }
 
     public Map<String, String> getHeader(){
@@ -143,6 +158,11 @@ public class Request {
                 sb.append(key).append(": ").append(mHeader.get(key)).append(CRLF);
             }
             sb.append(CRLF);
+            if(METHOD.GET == mMethod){
+                sb.append(getQueryString());
+            }else if(METHOD.POST == mMethod){
+                sb.append(getBody());
+            }
             return ByteBuffer.wrap(sb.toString().getBytes());
         }
     }

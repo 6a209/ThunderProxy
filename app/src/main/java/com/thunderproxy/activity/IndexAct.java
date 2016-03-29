@@ -12,6 +12,4 @@ public class IndexAct extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_index);
     }
-
-
 }

@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by 6a209 on 16/1/31.
@@ -44,17 +46,26 @@ public class ResSocketReadAction extends SocketReadAction{
             }
             mResponse.setHttpVersion(status[0]);
             mResponse.setStatusCode(status[1]);
-            mResponse.setShortDesc(status[2]);
+            mResponse.setShortDesc(status[2].replace("\r\n", ""));
             mCurrentStep = STEP.HEAD;
         }
 
         if(STEP.HEAD == mCurrentStep){
-            mResponse.setHeader(parseHeader(byteBuffer));
-            mCurrentStep = STEP.BODY;
-            try {
-                mSocketChannel.write(ByteBuffer.wrap(mResponse.format2Byte()));
-            } catch (IOException e) {
-                e.printStackTrace();
+            if(byteBuffer.remaining() <= 0){
+               return;
+            }
+            System.out.println("******* head ************");
+            Map<String, String> headers = new HashMap<String, String>();
+            boolean isOver = parseHeader(byteBuffer, headers);
+            mResponse.addHeader(headers);
+            System.out.println("******* head ************" + mResponse.getHeader().size());
+            if(isOver){
+                mCurrentStep = STEP.BODY;
+                try {
+                    mSocketChannel.write(ByteBuffer.wrap(mResponse.format2Byte()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -67,7 +78,10 @@ public class ResSocketReadAction extends SocketReadAction{
                 }
                 byte[] bytes = new byte[size];
                 byteBuffer.get(bytes);
-                mBodyTemp.append(bytes);
+                mBodyTemp.append(new String(bytes));
+                System.out.println("******* body ************");
+                System.out.println(mBodyTemp.toString());
+                System.out.println("---------------------");
                 try {
                     mSocketChannel.write(ByteBuffer.wrap(bytes));
                 } catch (IOException e) {
@@ -80,6 +94,7 @@ public class ResSocketReadAction extends SocketReadAction{
 
 
         if(STEP.OVER == mCurrentStep){
+            System.out.print(mBodyTemp);
         }
     }
 }
