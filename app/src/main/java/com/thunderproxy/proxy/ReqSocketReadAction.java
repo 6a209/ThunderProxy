@@ -86,6 +86,10 @@ public class ReqSocketReadAction extends SocketReadAction{
 
         if(STEP.OVER == mCurrentStep){
             connectHost(selector, mRequest);
+            ProxyServer.OnRequestListener listener = ProxyServer.instance().getOnRequestListener();
+            if(null != listener){
+                listener.onRequestFinish(mRequest);
+            }
         }
     }
 

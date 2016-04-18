@@ -17,6 +17,7 @@ public class Response {
     private String mShortDesc;
     private Map<String, String> mHeader;
     private String mBody;
+    private long mContentLength;
 
     public String getHttpVersion() {
         return mHttpVersion;
@@ -42,10 +43,6 @@ public class Response {
         this.mShortDesc = mShortDesc;
     }
 
-    public Map<String, String> getHeader() {
-        return mHeader;
-    }
-
     public void setHeader(Map<String, String> header) {
         this.mHeader = header;
     }
@@ -57,11 +54,23 @@ public class Response {
         mHeader.put(key, value);
     }
 
+    public void setContentLength(String contentLength){
+        mContentLength = Long.valueOf(contentLength);
+    }
+
+    public long getContentLength(){
+        return mContentLength;
+    }
+
     public void addHeader(Map<String, String> headers){
         if(null == mHeader){
             mHeader = new HashMap<>();
         }
         mHeader.putAll(headers);
+    }
+
+    public Map<String, String> getHeader(){
+        return mHeader;
     }
 
     public String getBody() {

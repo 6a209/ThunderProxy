@@ -34,6 +34,18 @@ public class ProxyServer {
     private ServerSocketChannel mSereverSocketChannel;
     private ByteBuffer mSocketBuffer;
 
+
+    public interface OnRequestListener{
+        void onRequestFinish(Request request);
+    }
+
+    public interface OnResponseListener{
+        void onResponseFinish(Response response);
+    }
+
+    OnRequestListener mOnRequestListener;
+    OnResponseListener mOnResponseListener;
+
     public static ProxyServer instance(){
         if(null == sProxyServer){
             synchronized (ProxyServer.class){
@@ -49,6 +61,23 @@ public class ProxyServer {
         mPort = DEFAULT_PORT;
         mSocketBuffer = ByteBuffer.allocate(BUFFER_SIZE);
     }
+
+    public void setOnRequestListener(OnRequestListener listener){
+        mOnRequestListener = listener;
+    }
+
+    public void setOnResponseListener(OnResponseListener listener){
+        mOnResponseListener = listener;
+    }
+
+    public OnRequestListener getOnRequestListener(){
+        return mOnRequestListener;
+    }
+
+    public OnResponseListener getOnResponseListener(){
+        return mOnResponseListener;
+    }
+
 
     public int getPort(){
         return mPort;

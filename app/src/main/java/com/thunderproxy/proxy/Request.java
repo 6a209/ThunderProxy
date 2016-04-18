@@ -27,6 +27,7 @@ public class Request {
     private String mBody;
     private String mHost;
     private String mPath;
+    private long mContentLength;
     private int mPort;
 
     private SocketChannel mSocketChannel;
@@ -141,6 +142,14 @@ public class Request {
 
     public SocketChannel getSocketChannel(){
         return mSocketChannel;
+    }
+
+    public void setContentLength(String contentLength){
+        mContentLength = Long.parseLong(contentLength);
+    }
+
+    public long getContentLength(){
+        return mContentLength;
     }
 
     public ByteBuffer factoryRequest(){

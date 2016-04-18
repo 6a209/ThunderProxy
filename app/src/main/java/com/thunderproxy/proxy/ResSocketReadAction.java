@@ -58,6 +58,7 @@ public class ResSocketReadAction extends SocketReadAction{
             Map<String, String> headers = new HashMap<String, String>();
             boolean isOver = parseHeader(byteBuffer, headers);
             mResponse.addHeader(headers);
+            mResponse.setContentLength(mResponse.getHeader().get("Content-Length"));
             System.out.println("******* head ************" + mResponse.getHeader().size());
             if(isOver){
                 mCurrentStep = STEP.BODY;
@@ -89,12 +90,23 @@ public class ResSocketReadAction extends SocketReadAction{
                 }
                 if (count < byteBuffer.capacity()) {
                 }
+            } else if(size <= 0 && null == mBodyTemp){
+                mCurrentStep = STEP.OVER;
             }
+
+            if(null != mBodyTemp && mBodyTemp.length() == mResponse.getContentLength()){
+                mCurrentStep = STEP.OVER;
+            }
+
         }
 
 
         if(STEP.OVER == mCurrentStep){
             System.out.print(mBodyTemp);
+            ProxyServer.OnResponseListener listener = ProxyServer.instance().getOnResponseListener();
+            if(null != listener){
+                listener.onResponseFinish(mResponse);
+            }
         }
     }
 }
