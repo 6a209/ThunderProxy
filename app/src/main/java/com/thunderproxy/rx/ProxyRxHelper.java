@@ -1,6 +1,7 @@
 package com.thunderproxy.rx;
 
 import android.util.Log;
+import android.util.Pair;
 
 import com.thunderproxy.proxy.ProxyServer;
 import com.thunderproxy.proxy.Request;
@@ -61,21 +62,23 @@ public class ProxyRxHelper {
     }
 
     public Observable registerResponseObservable(){
-        return Observable.create(new Observable.OnSubscribe<Response>(){
+        return Observable.create(new Observable.OnSubscribe<Pair<Request,Response> >(){
             @Override
-            public void call(final Subscriber<? super Response> subscriber) {
+            public void call(final Subscriber<? super Pair<Request, Response>> subscriber) {
 
                 mOnResponseListener = new ProxyServer.OnResponseListener() {
                     @Override
-                    public void onResponseFinish(Response response) {
+                    public void onResponseFinish(Pair<Request, Response> pair) {
                         Log.d(TAG, "onResponseFinish");
                         if(!subscriber.isUnsubscribed()){
-                            subscriber.onNext(response);
+                            subscriber.onNext(pair);
                         }
                     }
                 };
                 ProxyServer.instance().setOnResponseListener(mOnResponseListener);
             }
+
+
         });
     }
 }

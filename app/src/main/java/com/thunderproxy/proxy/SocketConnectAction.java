@@ -26,7 +26,7 @@ public class SocketConnectAction implements SocketAction{
             }
             System.out.print("*****ok***");
             SelectionKey selectionKey = socketChannel.register(selector, SelectionKey.OP_READ);
-            selectionKey.attach(new ResSocketReadAction(mRequest.getSocketChannel()));
+            selectionKey.attach(new ResSocketReadAction(mRequest));
             sendRequest(socketChannel, mRequest);
         }catch (Exception e){
             e.printStackTrace();

@@ -1,5 +1,7 @@
 package com.thunderproxy.proxy;
 
+import android.util.Pair;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -13,12 +15,13 @@ import java.util.Map;
  */
 public class ResSocketReadAction extends SocketReadAction{
 
-    SocketChannel mSocketChannel;
+//    SocketChannel mSocketChannel;
+    Request mRequest;
     Response mResponse;
 
 
-    public ResSocketReadAction(SocketChannel channel){
-        mSocketChannel = channel;
+    public ResSocketReadAction(Request request){
+        mRequest = request;
     }
 
 
@@ -26,6 +29,9 @@ public class ResSocketReadAction extends SocketReadAction{
     public void onAction(SelectionKey selectionKey, Selector selector, ByteBuffer byteBuffer) {
         int count = read(selectionKey, byteBuffer);
         if(count < 0){
+            if (null == mBodyTemp) {
+                return;
+            }
             mResponse.setBody(mBodyTemp.toString());
             try {
                 selectionKey.channel().close();
@@ -63,7 +69,7 @@ public class ResSocketReadAction extends SocketReadAction{
             if(isOver){
                 mCurrentStep = STEP.BODY;
                 try {
-                    mSocketChannel.write(ByteBuffer.wrap(mResponse.format2Byte()));
+                    mRequest.getSocketChannel().write(ByteBuffer.wrap(mResponse.format2Byte()));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -84,7 +90,7 @@ public class ResSocketReadAction extends SocketReadAction{
                 System.out.println(mBodyTemp.toString());
                 System.out.println("---------------------");
                 try {
-                    mSocketChannel.write(ByteBuffer.wrap(bytes));
+                    mRequest.getSocketChannel().write(ByteBuffer.wrap(bytes));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -105,7 +111,8 @@ public class ResSocketReadAction extends SocketReadAction{
             System.out.print(mBodyTemp);
             ProxyServer.OnResponseListener listener = ProxyServer.instance().getOnResponseListener();
             if(null != listener){
-                listener.onResponseFinish(mResponse);
+                Pair<Request, Response> pair = new Pair<>(mRequest, mResponse);
+                listener.onResponseFinish(pair);
             }
         }
     }

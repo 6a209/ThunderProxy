@@ -2,6 +2,7 @@ package com.thunderproxy.proxy;
 
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -40,7 +41,7 @@ public class ProxyServer {
     }
 
     public interface OnResponseListener{
-        void onResponseFinish(Response response);
+        void onResponseFinish(Pair<Request, Response> pair);
     }
 
     OnRequestListener mOnRequestListener;

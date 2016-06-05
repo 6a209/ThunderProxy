@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">ThunderProxy</string>
+    <string name="input_filter">input filter</string>
+    <string name="section">Section</string>
+    <string name="overview">Overview</string>
+    <string name="request">Request</string>
+    <string name="response">Response</string>
 </resources>
