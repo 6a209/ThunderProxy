@@ -17,6 +17,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <service
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:name=".vpn.ThunderVpnService">
+            <intent-filter>
+                <action android:name="android.net.VpnService"></action>
+            </intent-filter>
+        </service>
+
+        
     </application>
 
 </manifest>
