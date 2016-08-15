@@ -51,12 +51,13 @@ public class IPPackageUtils {
 
         oldIp[3] = ipPackage[19];
         ipPackage[19] = destIp[3];
-        getCheckSum(ipPackage);
+        byte[] checksum = getChecksum(ipPackage);
+        ipPackage[10] = checksum[0];
+        ipPackage[11] = checksum[1];
         return oldIp;
-
     }
 
-    public short getCheckSum(byte[] ipPackage) {
+    public byte[] getChecksum(byte[] ipPackage) {
         int headerLength = (ipPackage[0] & 0x0f) * 4;
 
         byte[] ipHeaderPackage = new byte[headerLength];
@@ -76,8 +77,13 @@ public class IPPackageUtils {
         checksum = (checksum >> 16) + (checksum & 0xffff);
         checksum += (checksum >> 16);
         short newSum = (short) (~checksum);
-        Log.d("new check sum", Integer.toHexString((newSum >> 8) & 0xff) + Integer.toHexString(newSum & 0xff));
-        return newSum;
+        byte[] checksumByte = new byte[2];
+        checksumByte[0] = (byte) (newSum & 0xff);
+        checksumByte[1] = (byte) ((newSum >> 8) & 0xff);
+
+        Log.d("new check sum", Integer.toHexString((newSum >> 8) & 0xff) + Integer.toHexString());
+        return checksumByte;
     }
+
 
 }
