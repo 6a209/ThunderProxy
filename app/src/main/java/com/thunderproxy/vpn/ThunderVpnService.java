@@ -8,7 +8,7 @@ import android.net.VpnService;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import com.thunderproxy.ip.IPPackageUtils;
+import com.thunderproxy.tcpip.TCPIPPackageUtils;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -26,9 +26,21 @@ import java.nio.ByteBuffer;
 
 public class ThunderVpnService extends VpnService{
 
+    static VpnService sVpnservice;
+
+    /**
+     * 保护socket 直接发掉
+     * @param socket
+     */
+    public static void protectSocket(Socket socket) {
+        if (null != sVpnservice) {
+           sVpnservice.protect(socket);
+        }
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flag, int startId) {
+        sVpnservice = this;
         startVpn();
         return super.onStartCommand(intent, flag, startId);
     }
@@ -36,6 +48,48 @@ public class ThunderVpnService extends VpnService{
     private void startVpn() {
         Builder builder = new Builder();
         builder.addAddress("10.25.1.1", 24)
+        .addRoute("1.0.0.0", 8)
+        .addRoute("2.0.0.0", 7)
+        .addRoute("4.0.0.0", 6)
+        .addRoute("8.0.0.0", 7)
+        // 10.0.0.0 - 10.255.255.255
+        .addRoute("11.0.0.0", 8)
+        .addRoute("12.0.0.0", 6)
+        .addRoute("16.0.0.0", 4)
+        .addRoute("32.0.0.0", 3)
+        .addRoute("64.0.0.0", 2)
+        .addRoute("139.0.0.0", 8)
+        .addRoute("140.0.0.0", 6)
+        .addRoute("144.0.0.0", 4)
+        .addRoute("160.0.0.0", 5)
+        .addRoute("168.0.0.0", 6)
+        .addRoute("172.0.0.0", 12)
+        // 172.16.0.0 - 172.31.255.255
+        .addRoute("172.32.0.0", 11)
+        .addRoute("172.64.0.0", 10)
+        .addRoute("172.128.0.0", 9)
+        .addRoute("173.0.0.0", 8)
+        .addRoute("174.0.0.0", 7)
+        .addRoute("176.0.0.0", 4)
+        .addRoute("192.0.0.0", 9)
+        .addRoute("192.128.0.0", 11)
+        .addRoute("192.160.0.0", 13)
+        // 192.168.0.0 - 192.168.255.255
+        .addRoute("192.169.0.0", 16)
+        .addRoute("192.170.0.0", 15)
+        .addRoute("192.172.0.0", 14)
+        .addRoute("192.176.0.0", 12)
+        .addRoute("192.192.0.0", 10)
+        .addRoute("193.0.0.0", 8)
+        .addRoute("194.0.0.0", 7)
+        .addRoute("196.0.0.0", 6)
+        .addRoute("200.0.0.0", 5)
+        .addRoute("208.0.0.0", 4)
+        .addRoute("224.0.0.0", 4)
+        .addRoute("240.0.0.0",5)
+        .addRoute("248.0.0.0",6)
+        .addRoute("252.0.0.0",7)
+        .addRoute("254.0.0.0",8)
         .addRoute("0.0.0.0", 0)
         .setMtu(1000)
         .addDnsServer("8.8.8.8")
@@ -83,6 +137,17 @@ public class ThunderVpnService extends VpnService{
         } catch (IOException e) {
             e.printStackTrace();
         }
+            new Thread(){
+                @Override
+                public void run(){
+                    try {
+                        Socket socket = new Socket("127.0.0.1", 8888);
+                        socket.getOutputStream().write(">>>> test <<<<<".getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
 
         while (true) {
             try {
@@ -90,9 +155,13 @@ public class ThunderVpnService extends VpnService{
                 int length = fin.read(byteArray);
 
                 if (length > 0) {
-                    Log.d("length >>", "" + length);
-                    Log.d("hex ====>>>", bytesToHexString(byteArray));
-                    IPPackageUtils.getInstance().getCheckSum(byteArray);
+
+
+//                    TCPIPPackageUtils.getInstance().redirectPackage()
+//                    TCPIPPackageUtils.getInstance(
+//                    Log.d("length >>", "" + length);
+//                    Log.d("hex ====>>>", bytesToHexString(byteArray));
+//                    TCPIPPackageUtils.getInstance().changeChecksum(byteArray);
 //                    logArray("version", System.arraycopy(byteArray, 0, new byte[4], 0, 4));
 //                    Log.d("version", "" + byteArray[0] + byteArray[1] + byteArray[2] + byteArray[3]);
 //                    Log.d("iP header length", "" + byteArray[4] + byteArray[5] + byteArray[6] + byteArray[7]);
@@ -136,5 +205,7 @@ public class ThunderVpnService extends VpnService{
     void logArray(String key, byte[] array) {
 
     }
+
+
 
 }
